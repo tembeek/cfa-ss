@@ -188,3 +188,4 @@ $RECYCLE.BIN/
 # Misc
 .env*
 !.env*.example
+.idea/copilot.*
