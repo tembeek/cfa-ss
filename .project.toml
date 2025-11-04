@@ -1,0 +1,11 @@
+# .project.toml
+project_id   = 64  # local projects.id
+elix_id      = 1  # ELIX library id
+lead_exec_id = 1  # executive lead
+
+[repository]
+visibility = "private"  # "private" or "public"
+
+[repository.owner]
+type = "org"  # "org" or "user"
+name = "tembeek"  # GitHub org name (or username if user)

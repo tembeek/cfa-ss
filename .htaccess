@@ -1,0 +1,22 @@
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Skip rewrite if running locally
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
+
+  # Force HTTPS on live server
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Clean URLs (rewrite /page to /page.php)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^([a-zA-Z0-9_-]+)/?$ $1.php [L,QSA]
+</IfModule>
+
+# Optional: prevent directory listing
+Options -Indexes
+
+# Optional: set default index file
+DirectoryIndex index.php
