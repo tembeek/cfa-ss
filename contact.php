@@ -4,48 +4,48 @@ $pageTitle = 'Contact';
 include_once __DIR__ . '/includes/header.php';
 
 /**
- * Safely display a clickable contact link from an environment variable.
- *
- * @param string $envName Name of the environment variable
- * @param string $type 'email' or 'phone'
- * @param string $fallback Optional fallback text
- * @return string Sanitized HTML <a> tag or fallback
- */
-/**
- * Generate a safe, accessible contact link from an environment variable.
+ * Generate safe, accessible contact links from an environment variable.
+ * Supports multiple comma-separated values (e.g. key=value1,value2)
  *
  * @param string $envName Environment variable name.
  * @param string $type 'email' or 'phone'.
- * @param string $labelText Optional descriptive text for aria-label context (e.g., "CFA-SS main office").
- * @param string $fallback Fallback text if variable is missing.
- * @return string HTML <a> tag or fallback string.
+ * @param string $labelText Optional label context for aria.
+ * @param string $fallback Fallback text if variable missing.
+ * @return string           Comma-separated HTML links or fallback.
  */
 function displayContact(string $envName, string $type = 'email', string $labelText = '', string $fallback = '[unavailable]'): string {
-    $value = getenv($envName);
-    if (!$value) {
-        return htmlspecialchars($fallback);
+    $raw = getenv($envName);
+    if (!$raw) {
+        return htmlspecialchars($fallback, ENT_QUOTES);
     }
 
-    // Clean and format value
-    $value = trim($value);
-    $safeLabel = htmlspecialchars($value, ENT_QUOTES);
-
-    if ($type === 'phone') {
-        // Strip non-digits for tel: link
-        $telHref = preg_replace('/\D+/', '', $value);
-        $aria = $labelText
-                ? "aria-label=\"Call $labelText at $safeLabel\""
-                : "aria-label=\"Call $safeLabel\"";
-        return "<a href=\"tel:+$telHref\" class=\"text-blue-900 hover:underline ml-2\" $aria>$safeLabel</a>";
-
-    } elseif ($type === 'email') {
-        $aria = $labelText
-                ? "aria-label=\"Email $labelText at $safeLabel\""
-                : "aria-label=\"Email $safeLabel\"";
-        return "<a href=\"mailto:$safeLabel\" class=\"text-blue-900 hover:underline ml-2\" $aria>$safeLabel</a>";
+    $values = array_filter(array_map('trim', explode(',', $raw)));
+    if (empty($values)) {
+        return htmlspecialchars($fallback, ENT_QUOTES);
     }
 
-    return htmlspecialchars($fallback);
+    $links = [];
+
+    foreach ($values as $value) {
+        $safeLabel = htmlspecialchars($value, ENT_QUOTES);
+
+        if ($type === 'phone') {
+            $telHref = preg_replace('/\D+/', '', $value);
+            $aria = $labelText
+                    ? "aria-label=\"Call $labelText at $safeLabel\""
+                    : "aria-label=\"Call $safeLabel\"";
+            $links[] = "<a href=\"tel:$telHref\" class=\"text-blue-900 hover:underline ml-2\" $aria>$safeLabel</a>";
+
+        } elseif ($type === 'email') {
+            $aria = $labelText
+                    ? "aria-label=\"Email $labelText at $safeLabel\""
+                    : "aria-label=\"Email $safeLabel\"";
+            $links[] = "<a href=\"mailto:$safeLabel\" class=\"text-blue-900 hover:underline ml-2\" $aria>$safeLabel</a>";
+        }
+    }
+
+    // join multiple contacts with comma+space
+    return implode(', ', $links);
 }
 
 ?>
@@ -58,7 +58,7 @@ function displayContact(string $envName, string $type = 'email', string $labelTe
     <div class="relative z-10 px-6 text-white">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
         <p class="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-            Reach out to us through our main or national offices. We’re always open to partnerships, ideas, and
+            Reach out to us through our main or national offices. We're always open to partnerships, ideas, and
             community engagement.
         </p>
     </div>
@@ -68,12 +68,12 @@ function displayContact(string $envName, string $type = 'email', string $labelTe
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <h2 class="text-2xl font-semibold text-blue-900 mb-4">Main Office</h2>
         <p class="text-gray-700 leading-relaxed">
-            <strong>Location:</strong> Majak Akoon, St. Joseph Women’s Center,<br>Aweil East County, South Sudan
+            <strong>Location:</strong> St. Joseph Women's Center<br> Majak Akoon, Aweil East, South Sudan
         </p>
 
         <p class="mt-4 text-gray-700">
             <strong>Phone:</strong>
-            <?= displayContact('CFASS_MAIN_PHONE', 'phone', "$org_acronym main office") ?>
+            <?= displayContact('CFASS_AWEIL_PHONE', 'phone', "$org_acronym main office") ?>
         </p>
 
         <p class="text-gray-700">
@@ -85,7 +85,7 @@ function displayContact(string $envName, string $type = 'email', string $labelTe
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <h2 class="text-2xl font-semibold text-blue-900 mb-4">Juba Office</h2>
         <p class="text-gray-700 leading-relaxed">
-            <strong>Location:</strong> Thong Piny, 3K South,<br>Near Juba Airport, South Sudan
+            <strong>Location:</strong> 3K South, Thongpiny (<em>near Juba Airport</em>)<br> Juba, Jubek, South Sudan
         </p>
 
         <p class="mt-4 text-gray-700">
@@ -103,7 +103,7 @@ function displayContact(string $envName, string $type = 'email', string $labelTe
 <section class="max-w-5xl mx-auto px-6 pb-12 text-center">
     <h2 class="text-2xl font-semibold text-blue-900 mb-4">Connect With Us</h2>
     <p class="text-gray-700 mb-6 max-w-2xl mx-auto">
-        Follow us on social media for updates on peacebuilding, youth empowerment, and women’s development projects
+        Follow us on social media for updates on peacebuilding, youth empowerment, and women's development projects
         across South Sudan.
     </p>
 
