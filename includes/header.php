@@ -4,9 +4,39 @@ $org_name = "Christian Faith in Action South Sudan";
 $org_acronym = "CFA-SS";
 $org_name_and_acronym = "$org_name ($org_acronym)";
 
-// Simple .env loader (only for local or non-framework PHP apps)
-$envPath = __DIR__ . '/../.env.cfass';
-if (file_exists($envPath)) {
+/**
+ * Robust .env loader for both local dev and shared hosting multi-site setups.
+ * Looks up the correct .env path automatically.
+ */
+
+// Detect base path
+$rootDir = dirname(__DIR__); // usually /home/username/public_html/website1/includes → /home/username/public_html/website1
+$publicHtml = dirname($rootDir); // /home/username/public_html
+$homeDir = dirname($publicHtml); // /home/username
+
+// Default assumption: shared hosting structure /home/username/public_html/site
+// Primary location: /home/username/.env  (shared across sites)
+// Secondary: /home/username/public_html/website1/.env  (site-specific)
+// Fallback: local .env in project root (dev)
+
+$fn = '/.env.cfass';
+$possibleEnvPaths = [
+        $homeDir . $fn,    // global shared hosting env
+        $rootDir . $fn,    // per-site env (website1/.env)
+        $publicHtml . $fn  // fallback if mis-placed
+];
+
+// Pick the first readable one
+$envPath = null;
+foreach ($possibleEnvPaths as $path) {
+    if (is_readable($path)) {
+        $envPath = $path;
+        break;
+    }
+}
+
+// Load environment variables if file found
+if ($envPath) {
     foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (str_starts_with(trim($line), '#')) {
             continue; // skip comments
