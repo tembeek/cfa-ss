@@ -189,3 +189,4 @@ $RECYCLE.BIN/
 .env*
 !.env*.example
 .idea/copilot.*
+*.zip

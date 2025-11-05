@@ -91,17 +91,20 @@ function h($string): string {
     <div class="max-w-6xl mx-auto flex flex-wrap justify-center py-3 gap-2 px-4">
         <?php
         $pages = [
-                'index' => 'Home',
+                'index' => 'Home', // FIXME: ensure there is no '/index' in the URL when clicking on 'Home' on live server
                 'about' => 'About',
                 'programs' => 'Programs',
                 'get-involved' => 'Get Involved',
                 'impact' => 'Impact',
                 'contact' => 'Contact'
         ];
+        // Detect if running locally
+        $isLocal = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $_SERVER['HTTP_HOST']);
+        $ext = $isLocal ? '.php' : '';
         $current = basename($_SERVER['PHP_SELF'], '.php');
         foreach ($pages as $file => $label) {
             $active = ($file === $current) ? 'bg-blue-900 text-white' : 'text-blue-900';
-            echo "<a href=\"{$file}.php\" class=\"px-4 py-2 font-semibold hover:bg-blue-900 hover:text-white rounded $active\">$label</a>";
+            echo "<a href=\"{$file}{$ext}\" class=\"px-4 py-2 font-semibold hover:bg-blue-900 hover:text-white rounded $active\">$label</a>";
         }
         ?>
     </div>
