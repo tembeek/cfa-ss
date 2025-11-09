@@ -70,6 +70,7 @@ function h($string): string {
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="antialiased text-gray-800 flex flex-col min-h-screen">
+
 <header class="bg-blue-900 text-white">
     <div class="max-w-6xl mx-auto py-6 px-6 flex flex-col md:flex-row items-center justify-center md:justify-between text-center md:text-left gap-4">
         <div class="flex items-center justify-center gap-4">
@@ -88,38 +89,85 @@ function h($string): string {
 </header>
 
 <!-- Navigation -->
-<nav class="bg-gray-100 shadow">
+<nav class="bg-gray-100 shadow relative">
     <div class="max-w-6xl mx-auto px-4">
         <div class="flex justify-between items-center py-3">
-            <!-- Hamburger button -->
+            <div class="text-blue-900 font-bold text-lg"></div>
+
+            <!-- Hamburger for mobile -->
             <button id="menu-btn" class="md:hidden text-blue-900 focus:outline-none" aria-label="Toggle menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16"/>
+                          d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
         </div>
 
-        <!-- Menu links -->
-        <div id="menu" class="hidden md:flex flex-wrap justify-center gap-2 pb-3 md:pb-0">
-            <?php
-            $pages = [
-                    'index' => 'Home', // FIXME: ensure there is no '/index' in the URL when clicking on 'Home' on live server
-                    'about' => 'About',
-                    'programs' => 'Programs',
-                    'get-involved' => 'Get Involved',
-                    'impact' => 'Impact',
-                    'contact' => 'Contact'
-            ];
-            // Detect if running locally
-            $isLocal = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $_SERVER['HTTP_HOST']);
-            $ext = $isLocal ? '.php' : '';
-            $current = basename($_SERVER['PHP_SELF'], '.php');
-            foreach ($pages as $file => $label) {
-                $active = ($file === $current) ? 'bg-blue-900 text-white' : 'text-blue-900';
-                echo "<a href=\"{$file}{$ext}\" class=\"px-4 py-2 font-semibold hover:bg-blue-900 hover:text-white rounded $active\">$label</a>";
-            }
-            ?>
+        <!-- Menu container -->
+        <div id="menu" class="hidden md:flex md:flex-wrap md:justify-center md:gap-2 pb-3 md:pb-0">
+
+            <!-- Small-screen layout -->
+            <div class="flex flex-nowrap justify-between gap-2 md:hidden">
+                <?php
+                $pages = [
+                        'index' => 'Home',
+                        'about' => 'About',
+                        'programs' => 'Programs',
+                        'get-involved' => 'Get Involved',
+                        'impact' => 'Impact',
+                        'contact' => 'Contact'
+                ];
+
+                // Detect if running locally
+                $isLocal = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $_SERVER['HTTP_HOST']);
+                $ext = $isLocal ? '.php' : '';
+                $current = basename($_SERVER['PHP_SELF'], '.php');
+                $visibleCount = 3; // first 3 visible before "More"
+                $i = 0;
+                foreach ($pages as $file => $label) {
+                    $active = ($file === $current) ? 'bg-blue-900 text-white' : 'text-blue-900';
+                    if ($i < $visibleCount) {
+                        echo "<a href=\"$file$ext\" class=\"block px-3 py-2 text-sm font-semibold hover:bg-blue-900 hover:text-white rounded $active\">$label</a>";
+                    }
+                    $i++;
+                }
+                ?>
+
+                <!-- More dropdown (mobile only) -->
+                <div class="relative inline-block">
+                    <button id="more-btn" class="text-blue-900 text-sm font-semibold px-3 py-2 hover:bg-blue-900 hover:text-white rounded">
+                        More ▾
+                    </button>
+                    <div id="more-menu" class="hidden absolute bg-gray-100 shadow rounded mt-1 right-0 w-44 z-50">
+                        <?php
+                        $i = 0;
+                        foreach ($pages as $file => $label) {
+                            if ($i++ < $visibleCount) {
+                                continue;
+                            }
+                            $active = ($file === $current) ? 'bg-blue-900 text-white' : 'text-blue-900';
+                            echo "<a href=\"$file$ext\" class=\"block px-3 py-2 text-sm font-semibold hover:bg-blue-900 hover:text-white rounded $active\">$label</a>";
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full nav for md+ screens -->
+            <div class="hidden md:flex md:flex-wrap justify-center gap-2">
+                <?php
+                foreach ($pages as $file => $label) {
+                    $href = $isLocal
+                            ? (($file === 'index') ? 'index.php' : "{$file}.php")
+                            : (($file === 'index') ? '/' : "/{$file}");
+                    $active = ($file === $current)
+                            ? 'bg-blue-900 text-white'
+                            : 'text-blue-900';
+                    echo "<a href=\"{$href}\" class=\"px-4 py-2 font-semibold hover:bg-blue-900 hover:text-white rounded {$active}\">{$label}</a>";
+                }
+                ?>
+            </div>
+
         </div>
     </div>
 </nav>
@@ -127,8 +175,20 @@ function h($string): string {
 <script>
     const btn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');
-    btn.addEventListener('click', () => {
-        menu.classList.toggle('hidden');
+    const moreBtn = document.getElementById('more-btn');
+    const moreMenu = document.getElementById('more-menu');
+
+    btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+    if (moreBtn) {
+        moreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            moreMenu.classList.toggle('hidden');
+        });
+    }
+    document.addEventListener('click', (e) => {
+        if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
+            moreMenu.classList.add('hidden');
+        }
     });
 </script>
 
